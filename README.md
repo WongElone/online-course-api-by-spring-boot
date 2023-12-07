@@ -7,7 +7,7 @@ This is one of my showcase projects, which is about constructing API for an imag
 - Note that endpoints are protected by authentications, you should first request the authentication endpoints to aquire an JWT access token before visiting other endpoints.  
 
 ## ER Diagram
-![online_course_erd.png](/online-course-api-by-spring-boot/online_course_erd.png?raw=true)  
+![online_course_erd.png](./online_course_erd.png?raw=true)  
 
 ## Tech Stacks
 
