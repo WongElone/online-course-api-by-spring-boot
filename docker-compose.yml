@@ -1,0 +1,10 @@
+version: '3'
+services:
+  springboot:
+    container_name: online-course-api
+    image: wongelone/online-course-api:0.1.0
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "80:8080"
