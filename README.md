@@ -2,7 +2,7 @@
 This is one of my showcase projects, which is about constructing API for an imaginary online course website. The core technology is Java Spring Boot.  
 
 ## ✨API is open for test now✨
-📄 Read the API endpoints documentation here: http://3.1.81.214/swagger-ui/index.html
+📄 Read the API endpoints documentation here: http://18.141.190.58:1230/swagger-ui/index.html
 - It is interactive, you can test the endpoints directly on this documentation website. You can also test the endpoints with other tools, such as Postman.  
 - Note that endpoints are protected by authentications, you should first request the authentication endpoints to aquire an JWT access token before visiting other endpoints.  
 
