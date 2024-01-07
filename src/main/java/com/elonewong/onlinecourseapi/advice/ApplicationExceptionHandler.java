@@ -1,11 +1,14 @@
 package com.elonewong.onlinecourseapi.advice;
 
 import com.elonewong.onlinecourseapi.exception.*;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -21,6 +24,42 @@ public class ApplicationExceptionHandler {
     // handlers with @ResponseStatus are automatically included in possible status in each endpoint in Open API documentation
     // handlers without @ResponseStatus are automatically NOT included in possible status in each endpoint in Open API documentation,
     //  UNLESS explicitly include certain status with @ApiResponses annotated on endpoint methods
+
+    @ExceptionHandler(RegisterUserBadRequestException.class)
+    public ResponseEntity<Map<String, String>> registerUserBadRequestExceptionHandler(RegisterUserBadRequestException ex) {
+        Map<String, String> errorMap = new HashMap<>();
+        errorMap.put("errorMessage", ex.getMessage());
+        errorMap.put("reason", "email-exists");
+        ex.printStackTrace();
+        return new ResponseEntity<>(errorMap, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<Map<String, String>> badCredentialsExceptionHandler(BadCredentialsException ex) {
+        Map<String, String> errorMap = new HashMap<>();
+        errorMap.put("errorMessage", ex.getMessage());
+        errorMap.put("reason", "bad-credentials");
+        ex.printStackTrace();
+        return new ResponseEntity<>(errorMap, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ExpiredJwtException.class)
+    public ResponseEntity<Map<String, String>> expiredJwtExceptionHandler(ExpiredJwtException ex) {
+        Map<String, String> errorMap = new HashMap<>();
+        errorMap.put("errorMessage", ex.getMessage());
+        errorMap.put("reason", "expired-token");
+        ex.printStackTrace();
+        return new ResponseEntity<>(errorMap, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(SignatureException.class)
+    public ResponseEntity<Map<String, String>> signatureExceptionHandler(SignatureException ex) {
+        Map<String, String> errorMap = new HashMap<>();
+        errorMap.put("errorMessage", ex.getMessage());
+        errorMap.put("reason", "invalid-token");
+        ex.printStackTrace();
+        return new ResponseEntity<>(errorMap, HttpStatus.UNAUTHORIZED);
+    }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<Map<String, String>> httpRequestMethodNotSupportedExceptionHandler(HttpRequestMethodNotSupportedException ex) {

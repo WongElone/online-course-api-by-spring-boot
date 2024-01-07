@@ -10,8 +10,10 @@ import com.elonewong.onlinecourseapi.csr.user.Role;
 import com.elonewong.onlinecourseapi.csr.user.User;
 import com.elonewong.onlinecourseapi.csr.user.UserRepository;
 import com.elonewong.onlinecourseapi.exception.BadRequestException;
+import com.elonewong.onlinecourseapi.exception.RegisterUserBadRequestException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
+import java.util.Optional;
 
 
 @Service
@@ -33,8 +36,18 @@ public class AuthenticationService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
+    public AuthenticationResponse register(RegisterRequest request) throws RegisterUserBadRequestException {
+        try {
+            return tryRegister(request);
+        } catch (DataIntegrityViolationException ex) {
+            Optional<User> existingUserByEmail = repository.findByEmail(request.getEmail());
+            if (existingUserByEmail.isPresent()) throw new RegisterUserBadRequestException("email already registered");
+            throw ex;
+        }
+    }
+
     @Transactional
-    public AuthenticationResponse register(RegisterRequest request) {
+    private AuthenticationResponse tryRegister(RegisterRequest request) throws RegisterUserBadRequestException {
         var user = User.builder()
                 .firstName(request.getFirstname())
                 .lastName(request.getLastname())
@@ -42,8 +55,8 @@ public class AuthenticationService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(request.getRole())
                 .build();
-
         repository.save(user);
+
         if (Role.TEACHER.equals(user.getRole())) {
             teacherRepository.save(Teacher.builder().user(user).courses(Collections.emptyList()).build());
         } else if (Role.STUDENT.equals(user.getRole())) {
@@ -55,6 +68,7 @@ public class AuthenticationService {
         return AuthenticationResponse.builder()
                 .accessToken(jwtToken)
                 .refreshToken(refreshToken)
+                .role(user.getRole().name())
                 .build();
     }
 
@@ -72,6 +86,7 @@ public class AuthenticationService {
         return AuthenticationResponse.builder()
                 .accessToken(jwtToken)
                 .refreshToken(refreshToken)
+                .role(user.getRole().name())
                 .build();
     }
 
@@ -80,7 +95,7 @@ public class AuthenticationService {
     ) {
         String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (authHeader == null || !authHeader.startsWith(JwtAuthenticationFilter.AUTH_HEADER_PREFIX)) {
-            throw new RuntimeException("Refresh token not found.");
+            throw new BadRequestException("Refresh token not found.");
         }
 
         String refreshToken = authHeader.substring(JwtAuthenticationFilter.AUTH_HEADER_PREFIX.length());
@@ -97,6 +112,6 @@ public class AuthenticationService {
             }
         }
 
-        throw new RuntimeException("Refresh token invalid.");
+        throw new BadRequestException("Refresh token invalid.");
     }
 }
